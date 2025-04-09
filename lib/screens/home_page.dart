@@ -53,6 +53,16 @@ class _HomePageState extends State<HomePage> {
         'completed': false,
         'timestamp': FieldValue.serverTimestamp(),
       };
+
+      //docRef gives us the insertion id from the document
+
+      final docRef = await db.collection('tasks').add(newTask);
+
+      //add the tasks locally
+      setState(() {
+        tasks.add({'id': docRef.id, ...newTask});
+      });
+      nameController.clear();
     }
   }
 
@@ -80,7 +90,7 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           children: [
             SizedBox(
-              height:340,
+              height: 340,
               child: TableCalendar(
                 calendarFormat: CalendarFormat.month,
                 focusedDay: DateTime.now(),
@@ -88,7 +98,10 @@ class _HomePageState extends State<HomePage> {
                 lastDay: DateTime(2026),
               ),
             ),
-            Expanded(child: Container(child: buildAddTaskSection(nameController)),
+            Expanded(
+              child: Container(
+                child: buildAddTaskSection(nameController, addTask),
+              ),
             ),
           ],
         ),
@@ -99,7 +112,7 @@ class _HomePageState extends State<HomePage> {
 }
 
 //Build the section for adding tasks
-Widget buildAddTaskSection(nameController) {
+Widget buildAddTaskSection(nameController, addTask) {
   return Padding(
     padding: const EdgeInsets.all(12.0),
     child: Row(
@@ -114,7 +127,7 @@ Widget buildAddTaskSection(nameController) {
             ),
           ),
         ),
-        ElevatedButton(onPressed: null, child: Text('Add Task')),
+        ElevatedButton(onPressed: addTask, child: Text('Add Task')),
       ],
     ),
   );
