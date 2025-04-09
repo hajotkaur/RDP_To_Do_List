@@ -104,8 +104,7 @@ Widget buildAddTaskSection(nameController) {
     padding: const EdgeInsets.all(12.0),
     child: Row(
       children: [
-        Container(
-          decoration: BoxDecoration(color: Colors.white),
+        Expanded(
           child: TextField(
             maxLength: 32,
             controller: nameController,
