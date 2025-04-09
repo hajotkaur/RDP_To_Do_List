@@ -76,19 +76,22 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      body: Column(
-        children: [
-          Column(
-            children: [
-              TableCalendar(
+      body: SafeArea(
+        child: Column(
+          children: [
+            SizedBox(
+              height:340,
+              child: TableCalendar(
                 calendarFormat: CalendarFormat.month,
                 focusedDay: DateTime.now(),
                 firstDay: DateTime(2025),
                 lastDay: DateTime(2026),
               ),
-            ],
-          ),
-        ],
+            ),
+            Expanded(child: Container(child: buildAddTaskSection(nameController)),
+            ),
+          ],
+        ),
       ),
       drawer: Drawer(),
     );
