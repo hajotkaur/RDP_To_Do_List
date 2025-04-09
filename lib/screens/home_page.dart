@@ -1,3 +1,6 @@
+import 'dart:ffi';
+import 'dart:nativewrappers/_internal/vm/lib/ffi_patch.dart';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -65,6 +68,31 @@ class _HomePageState extends State<HomePage> {
       nameController.clear();
     }
   }
+   
+   //update the completion status of the task in Firestore & locally
+   Future<void> updateTask(int index, bool completed) async {
+    final task = tasks[index];
+    await db
+    .collection('tasks')
+    .doc(task['id'])
+    .update({'completed': completed});
+
+    setState(() {
+      tasks[index]['completed'] = completed;
+    });
+  }
+  
+  //delete the task from Firestore & locally
+  Future<void> removeTasks(int index) async {
+    final task = tasks[index];
+    await db.collection('tasks').doc(task['id']).delete();
+    
+    setState(() {
+      tasks.removeAt(index);
+    });
+  }
+} 
+   
 
   @override
   Widget build(BuildContext context) {
@@ -139,9 +167,25 @@ Widget buildTaskList(tasks) {
     shrinkWrap: true,
     itemCount: tasks.length,
     itemBuilder: (context, index) {
+      final task = tasks[index];
+      
       return ListTile(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      );
+        leading: Icon(
+          task['completed'] ? Icons.check_box : Icons.check_circle_outlined
+        ),
+        title: Text(
+          task['name'],
+          style: TextStyle(
+            decoration: task['completed'] ? TextDecoration.lineThrough : null,
+            fontSize:22,
+             ),
+          ),
+          trailing: Row(children: [
+            Checkbox(),
+            IconButton(),
+           ],)
+        );
     },
   );
 }
