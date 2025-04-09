@@ -161,7 +161,7 @@ Widget buildAddTaskSection(nameController, addTask) {
   );
 }
 
-Widget buildTaskList(tasks) {
+Widget buildTaskList(tasks,updateTask) {
   return ListView.builder(
     physics: NeverScrollableScrollPhysics(),
     shrinkWrap: true,
@@ -182,7 +182,9 @@ Widget buildTaskList(tasks) {
              ),
           ),
           trailing: Row(children: [
-            Checkbox(),
+            Checkbox(value: task['completed'],
+             onChanged: (value) => updateTask(index, value!),
+            ),
             IconButton(),
            ],)
         );
