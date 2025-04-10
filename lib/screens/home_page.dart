@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+// create the HomePage screen using stateful widget
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -12,15 +13,15 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final FirebaseFirestore db =
-      FirebaseFirestore.instance; //new firestore instance
+      FirebaseFirestore.instance; //use instance for acessing Firestore database
   final TextEditingController nameController =
-      TextEditingController(); //captures textform input
-  final List<Map<String, dynamic>> tasks = [];
+      TextEditingController(); //controller for capturing user input for task name
+  final List<Map<String, dynamic>> tasks = []; //  list to store tasks locally
 
   @override
   void initState() {
     super.initState();
-    fetchTasks();
+    fetchTasks(); // load tasks from Firestore when the widget initializes
   }
 
   //Fetches tasks from the firestore and update local task list
@@ -28,13 +29,14 @@ class _HomePageState extends State<HomePage> {
     final snapshot = await db.collection('tasks').orderBy('timestamp').get();
 
     setState(() {
-      tasks.clear();
+      tasks.clear(); //clear local task list before adding fetched tasks
       tasks.addAll(
         snapshot.docs.map(
           (doc) => {
-            'id': doc.id,
-            'name': doc.get('name'),
-            'completed': doc.get('completed') ?? false,
+            'id':
+                doc.id, //document id used for updating or deleting tasks in Firestore
+            'name': doc.get('name'), //Task name
+            'completed': doc.get('completed') ?? false, //Task completion status
           },
         ),
       );
@@ -43,13 +45,14 @@ class _HomePageState extends State<HomePage> {
 
   //Function that adds new tasks to local state & firestore database
   Future<void> addTask() async {
-    final taskName = nameController.text.trim();
+    final taskName =
+        nameController.text.trim(); // Get input and trim whitespace
 
     if (taskName.isNotEmpty) {
       final newTask = {
         'name': taskName,
         'completed': false,
-        'timestamp': FieldValue.serverTimestamp(),
+        'timestamp': FieldValue.serverTimestamp(), //Timestamp for sorting tasks
       };
 
       //docRef gives us the insertion id of the task from the database
@@ -59,7 +62,7 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         tasks.add({'id': docRef.id, ...newTask});
       });
-      nameController.clear();
+      nameController.clear(); //clear input field after adding task
     }
   }
 
@@ -71,7 +74,7 @@ class _HomePageState extends State<HomePage> {
     });
 
     setState(() {
-      tasks[index]['completed'] = completed;
+      tasks[index]['completed'] = completed; //update local task status
     });
   }
 
@@ -79,10 +82,13 @@ class _HomePageState extends State<HomePage> {
   Future<void> removeTasks(int index) async {
     final task = tasks[index];
 
-    await db.collection('tasks').doc(task['id']).delete();
+    await db
+        .collection('tasks')
+        .doc(task['id'])
+        .delete(); //delete from firestore
 
     setState(() {
-      tasks.removeAt(index);
+      tasks.removeAt(index); //remove locally
     });
   }
 
@@ -94,7 +100,9 @@ class _HomePageState extends State<HomePage> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Expanded(child: Image.asset('assets/rdplogo.png', height: 80)),
+            Expanded(
+              child: Image.asset('assets/rdplogo.png', height: 80),
+            ), //insert the logolink to image
             const Text(
               'Daily Planner',
               style: TextStyle(
@@ -118,11 +126,13 @@ class _HomePageState extends State<HomePage> {
                     firstDay: DateTime(2025),
                     lastDay: DateTime(2026),
                   ),
+                  //Build dyanamic list of tasks
                   buildTaskList(tasks, removeTasks, updateTask),
                 ],
               ),
             ),
           ),
+          //Add task button and section to input field
           buildAddTaskSection(nameController, addTask),
         ],
       ),
@@ -151,8 +161,9 @@ Widget buildAddTaskSection(nameController, addTask) {
               ),
             ),
           ),
+          //Elevated button for adding tasks
           ElevatedButton(
-            onPressed: addTask, //Adds tasks when pressed
+            onPressed: addTask, //Call Add tasks when pressed
             child: Text('Add Task'),
           ),
         ],
@@ -164,18 +175,22 @@ Widget buildAddTaskSection(nameController, addTask) {
 //Widget that displays the task item on the UI
 Widget buildTaskList(tasks, removeTasks, updateTask) {
   return ListView.builder(
-    shrinkWrap: true,
-    physics: const NeverScrollableScrollPhysics(),
+    shrinkWrap:
+        true, //Makes the listview that works inside Singlechild scrollview
+    physics: const NeverScrollableScrollPhysics(), //prevent inner scroll
     itemCount: tasks.length,
     itemBuilder: (context, index) {
       final task = tasks[index];
-      final isEven = index % 2 == 0;
+      final isEven = index % 2 == 0; // Alternate colors for list items
 
       return Padding(
         padding: EdgeInsets.all(1.0),
         child: ListTile(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          tileColor: isEven ? Colors.blue : Colors.green,
+          tileColor:
+              isEven
+                  ? Colors.blue
+                  : Colors.green, // Alternate colors for list items
           leading: Icon(
             task['completed'] ? Icons.check_circle : Icons.circle_outlined,
           ),
@@ -189,13 +204,20 @@ Widget buildTaskList(tasks, removeTasks, updateTask) {
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              //Checkbox to mark task as completed
               Checkbox(
                 value: task['completed'],
-                onChanged: (value) => updateTask(index, value!),
+                onChanged:
+                    (value) => updateTask(
+                      index,
+                      value!,
+                    ), //update task status when checkbox is toggled
               ),
               IconButton(
-                icon: Icon(Icons.delete),
-                onPressed: () => removeTasks(index),
+                icon: Icon(Icons.delete), //Delete button to remove task
+                onPressed:
+                    () =>
+                        removeTasks(index), //remove task when button is pressed
               ),
             ],
           ),
